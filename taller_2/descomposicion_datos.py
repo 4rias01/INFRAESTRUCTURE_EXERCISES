@@ -44,16 +44,16 @@ def procesar_imagenes_paralelo(lista_imagenes, dir, num_hilos):
         ex.map(tarea, lista_imagenes, chunksize=chunksize)
 
 if __name__ == '__main__':
-    directorio_imagenes = "taller_2/imagenes" # Reemplaza con el nombre de tu directorio
+    # Directorios de salida para las imagenes
+    directorio_imagenes = "taller_2/entrada/imagenes" # Reemplaza con el nombre de tu directorio
+    dir_paralelo = "taller_2/salida/par_punto1"
+    dir_secuencial = "taller_2/salida/sec_punto1"
+
     lista_imagenes = [os.path.join(directorio_imagenes, f) for f in 
                       os.listdir(directorio_imagenes) if
                       os.path.isfile(os.path.join(directorio_imagenes, f))]
     num_hilos = 8
 
-    # Directorios de salida para las imagenes
-    dir_paralelo = "taller_2/salida/par"
-    dir_secuencial = "taller_2/salida/sec"
-    
     inicio_secuencial = time.time()
     procesar_imagenes_secuencial(lista_imagenes, dir_secuencial)
     fin_secuencial = time.time()
