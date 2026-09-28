@@ -1,6 +1,7 @@
 import time
 import multiprocessing
 
+
 FIN = None
 TAM_BLOQUE = 60000
 
@@ -15,7 +16,6 @@ def procesar_texto_secuencial(ruta_entrada, ruta_salida):
                 f_out.write(linea_mayusculas + '\n')
     except FileNotFoundError:
         print(f"Error: No se encontró el archivo {ruta_entrada}")
-
 
 
 def leer_lineas(cola_entrada, ruta_entrada):
@@ -35,30 +35,32 @@ def leer_lineas(cola_entrada, ruta_entrada):
         cola_entrada.put(FIN)
 
 
-def transformar_lineas(cola_entrada, cola_salida):
-    while True:
-        bloque = cola_entrada.get()
-        if bloque is FIN:
-            cola_salida.put(FIN)
-            break
-        cola_salida.put([linea.upper() for linea in bloque])
-
-
 def escribir_lineas(cola_salida, ruta_salida):
     with open(ruta_salida, 'w') as f_out:
         while True:
             bloque = cola_salida.get()
             if bloque is FIN:
                 break
-            f_out.write('\n'.join(bloque) + '\n')
+            f_out.write('\n'.join(linea.upper() for linea in bloque) + '\n')
+
+
+def procesar_texto_paralelo(ruta_entrada, ruta_salida):
+    cola_bloques = multiprocessing.Queue()
+
+    proceso_leer = multiprocessing.Process(target=leer_lineas, args=(cola_bloques, ruta_entrada))
+    proceso_escribir = multiprocessing.Process(target=escribir_lineas, args=(cola_bloques, ruta_salida))
+    
+    proceso_leer.start()
+    proceso_escribir.start()
+
+    proceso_leer.join()
+    proceso_escribir.join()
+
 
 if __name__ == '__main__':
     ruta_entrada = "taller_2/entrada/texto_entrada.txt"
     ruta_salida_sec = "taller_2/salida/texto_salida_secuencial.txt"
     ruta_salida_par = "taller_2/salida/texto_salida_paralelo.txt"
-
-    cola_lectura = multiprocessing.Queue()
-    cola_transformación = multiprocessing.Queue()
 
 
     inicio_sec = time.time()
@@ -69,21 +71,9 @@ if __name__ == '__main__':
     print(f"Tiempo total de procesamiento secuencial: {dif_sec:.2f} segundos")
     print(f"Archivo procesado secuencialmente guardado en {ruta_salida_sec}")
 
-
-    proceso_leer = multiprocessing.Process(target=leer_lineas, args=(cola_lectura, ruta_entrada))
-    proceso_transformar = multiprocessing.Process(target=transformar_lineas, args=(cola_lectura, cola_transformación))
-    proceso_escribir = multiprocessing.Process(target=escribir_lineas, args=(cola_transformación, ruta_salida_par))
-    
+        
     inicio_par = time.time()
-
-    proceso_leer.start()
-    proceso_transformar.start()
-    proceso_escribir.start()
-
-    proceso_leer.join()
-    proceso_transformar.join()
-    proceso_escribir.join()
-
+    procesar_texto_paralelo(ruta_entrada, ruta_salida_par)
     fin_par = time.time()
     dif_par = fin_par - inicio_par
 
