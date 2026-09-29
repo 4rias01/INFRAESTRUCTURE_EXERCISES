@@ -5,6 +5,8 @@ from concurrent.futures import ProcessPoolExecutor # Servirá para ignorar el GI
 from functools import partial
 
 
+print("Estoy ejecutando desde:", os.getcwd())
+
 def convertir_a_gris(ruta_imagen, carpeta_destino=None):
     """Convierte una imagen a escala de grises.
     Si carpeta_destino es None, guarda junto a la imagen original"""
@@ -45,9 +47,9 @@ def procesar_imagenes_paralelo(lista_imagenes, dir, num_hilos):
 
 if __name__ == '__main__':
     # Directorios de salida para las imagenes
-    directorio_imagenes = "taller_2/entrada/imagenes" # Reemplaza con el nombre de tu directorio
-    dir_paralelo = "taller_2/salida/par_punto1"
-    dir_secuencial = "taller_2/salida/sec_punto1"
+    directorio_imagenes = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\entrada\imagenes"
+    dir_paralelo = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\par_punto1"
+    dir_secuencial = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\sec_punto1"
 
     lista_imagenes = [os.path.join(directorio_imagenes, f) for f in 
                       os.listdir(directorio_imagenes) if
