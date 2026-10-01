@@ -91,9 +91,9 @@ def procesar_texto_paralelo(ruta_entrada, ruta_salida):
 
 # bloque main del codigo.
 if __name__ == '__main__':
-    ruta_entrada = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\entrada\texto_entrada.txt"
-    ruta_salida_sec = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\texto_salida_secuencial.txt"
-    ruta_salida_par = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\texto_salida_paralelo.txt"
+    ruta_entrada = "taller_2/entrada/texto_entrada.txt"
+    ruta_salida_sec = "taller_2/salida/texto_salida_secuencial.txt"
+    ruta_salida_par = "taller_2/salida/texto_salida_paralelo.txt"
 
     inicio_sec = time.time()
     procesar_texto_secuencial(ruta_entrada, ruta_salida_sec)

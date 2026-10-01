@@ -54,10 +54,9 @@ def procesar_imagenes_paralelo(lista_imagenes, dir, num_hilos):
 # Funcion principal main:
 if __name__ == '__main__':
     # Directorios de salida para las imagenes (caso de mi equipo xD)
-    directorio_imagenes = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\entrada\imagenes"
-    dir_paralelo = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\par_punto1"
-    dir_secuencial = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\sec_punto1"
-
+    directorio_imagenes = "taller_2/entrada/imagenes" # Reemplaza con el nombre de tu directorio
+    dir_paralelo = "taller_2/salida/par_punto1"
+    dir_secuencial = "taller_2/salida/sec_punto1"
     lista_imagenes = [os.path.join(directorio_imagenes, f) for f in 
                       os.listdir(directorio_imagenes) if
                       os.path.isfile(os.path.join(directorio_imagenes, f))]
