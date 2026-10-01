@@ -60,11 +60,10 @@ def transformar_bloques(cola_entrada, cola_salida):
 def escribir_bloques(cola_salida, ruta_salida):
     with open(ruta_salida, 'wb') as f_out: #abrimos el archivo de salida en modo escritura de bytes
         while True:
-            item = cola_salida.get() # tomamos un bloque de la cola
-            if item is FIN: # validacion de bandera de FIn
+            bloque = cola_salida.get()  # tomamos un bloque de la cola
+            if bloque is FIN:  # validacion de bandera de FIN
                 break
-            bloque = item
-            f_out.write(bloque) # escribimos en el archivo de salida
+            f_out.write(bloque)  # escribimos en el archivo de salida
 
 
 # Procesamiento paralelo.
