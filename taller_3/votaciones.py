@@ -251,13 +251,13 @@ if __name__ == '__main__':
     TAM_LOTE = 100_000      # votos por cada reporte parcial de una mesa
     TAM_BUFFER = 16         # capacidad máxima de la cola (buffer acotado)
     contexto = [CANDIDATOS, PROBABILIDADES, NUM_VOTANTES, MESAS_VOTACION]
-    rutas_votos_sec = [f"taller_3/salida/mesas/mesa_{i}_sec.txt" for i in range(MESAS_VOTACION)]
-    rutas_votos_par = [f"taller_3/salida/mesas/mesa_{i}_par.txt" for i in range(MESAS_VOTACION)]
+    rutas_votos_sec = [f"taller_3/mesas/mesa_{i}_sec.txt" for i in range(MESAS_VOTACION)]
+    rutas_votos_par = [f"taller_3/mesas/mesa_{i}_par.txt" for i in range(MESAS_VOTACION)]
     votos_esperados = (NUM_VOTANTES // MESAS_VOTACION) * MESAS_VOTACION
 
     generar_votos(contexto, rutas_votos_sec, rutas_votos_par)
 
-    print(f"GENERANDO VOTACIONES SECUENCIALES...\n")
+    print(f"CONTANDO VOTOS SECUENCIALEMENTE...\n")
     inicio = time.time()
     total_sec = contar_votos_secuencial(rutas_votos_par)
     final = time.time()
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     print(f"el tiempo de ejecucíon secuencial fue de {tiempo_sec:.2f}\n")
 
 
-    print(f"GENERANDO VOTACIONES PARALELAS...\n")
+    print(f"CONTANDO VOTOS PARALELAMENTE...\n")
     inicio = time.time()
     total_par = contar_votos_paralelo(rutas_votos_par)
     final = time.time()
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     print(f"La aceleración del programa fue de {aceleracion:.2f}x\n")
 
 
-    print(f"GENERANDO VOTACIONES PRODUCTOR/CONSUMIDOR...\n")
+    print(f"CONTANDO VOTOS CON PRODUCTOR/CONSUMIDOR...\n")
     inicio = time.time()
     total_pc = contar_votos_productor_consumidor(rutas_votos_par, votos_esperados,
                                                  TAM_LOTE, TAM_BUFFER)
