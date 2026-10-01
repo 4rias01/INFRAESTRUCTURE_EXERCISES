@@ -2,11 +2,9 @@ from PIL import Image
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor # Servirá para ignorar el GIL y realizar paralelismo por procesos
-from functools import partial
+from functools import partial # sirve para poder crear una funcion con argumento ya definido (usado en el map)
 
-
-print("Estoy ejecutando desde:", os.getcwd())
-
+# Funcion brindada por maestro para convertir imagen a escala de grises
 def convertir_a_gris(ruta_imagen, carpeta_destino=None):
     """Convierte una imagen a escala de grises.
     Si carpeta_destino es None, guarda junto a la imagen original"""
@@ -15,6 +13,8 @@ def convertir_a_gris(ruta_imagen, carpeta_destino=None):
         imagen_gris = imagen.convert('L') # 'L' representa escala de grises
 
         # Separamos, carpeta, nombre y extension
+        # Se añade la opción de carpeta_destino para guardar en otra ubicación las iamgenes
+        # procesadas y poseer un mayor orden.
         carpeta_original = os.path.dirname(ruta_imagen)
         nombre_completo = os.path.basename(ruta_imagen)
         nombre_archivo, extension = os.path.splitext(nombre_completo)
@@ -32,21 +32,28 @@ def convertir_a_gris(ruta_imagen, carpeta_destino=None):
     except Exception as e:
         print(f"Error al procesar {ruta_imagen}: {e}")
 
-
+# Funcion secuencial generica dada por profesor:
 def procesar_imagenes_secuencial(lista_imagenes, dir):
     """Procesa una lista de imágenes secuencialmente."""
     for ruta_imagen in lista_imagenes:
         convertir_a_gris(ruta_imagen, dir)
 
-
+# Funcion paralela implementada:
+# Esta funciona usando partial, para poder pasarle un argumento fijo a el map,
+# siendo este la carpeta de destino.
+# Definimos un tamaño de chunk para que cada proceso de la Pool reciba un lote de imagenes a procesar.
+# Usamos * 4, para que en lugar de quedar lotes grandes para cada proceso, se divida en lotes mas pequeños,
+# de manera que cada proceso pueda terminar su lote y recibir otro, evitando que un proceso quede bloqueado mientras otros terminan.
+# por ultimo, con map, se ejecuta la funcion convertir_a_gris en paralelo para cada imagen de la lista.
 def procesar_imagenes_paralelo(lista_imagenes, dir, num_hilos):
-    tarea = partial(convertir_a_gris, carpeta_destino=dir)
-    chunksize = max(1, len(lista_imagenes)//(num_hilos*4))
-    with ProcessPoolExecutor(max_workers=num_hilos) as ex:
+    tarea = partial(convertir_a_gris, carpeta_destino=dir) # fijamos el argumento carpeta_destino
+    chunksize = max(1, len(lista_imagenes)//(num_hilos*4)) # se define chunkssize
+    with ProcessPoolExecutor(max_workers=num_hilos) as ex: # aplicamos el paralelismo, asignando lotes a cada proceso.
         ex.map(tarea, lista_imagenes, chunksize=chunksize)
 
+# Funcion principal main:
 if __name__ == '__main__':
-    # Directorios de salida para las imagenes
+    # Directorios de salida para las imagenes (caso de mi equipo xD)
     directorio_imagenes = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\entrada\imagenes"
     dir_paralelo = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\par_punto1"
     dir_secuencial = r"C:\Users\HP\Desktop\infra\INFRAESTRUCTURE_EXERCISES\taller_2\salida\sec_punto1"
