@@ -6,22 +6,25 @@ from collections import Counter
 from itertools import islice
 
 
-# genera los votos de una sola mesa y los va guardando en su archivo,
-# un voto por linea
+# Esta funcion con el contexto brindado, genera los votos de una sola mesa y 
+# los va guardando en su archivo, con el formato de un voto por linea.
+# contexto es un array con los candidatos, las probabilidades de cada uno y el numero de votantes
+# (tambien cuenta con num_mesas pero no se usa aca)
 def generar_votos_mesa(contexto, ruta_salida):
-    candidatos = contexto[0]
+    # dado el contexto
+    candidatos = contexto[0] 
     probabilidades = contexto[1]
     num_votantes = contexto[2]
-    with open(ruta_salida, 'w') as f_out:
+    with open(ruta_salida, 'w') as f_out: #abrimos el archivo donde se escribiran los votos
         for i in range(num_votantes):
-            # se escoge un candidato al azar pero respetando las probabilidades
+            # se escoge un candidato al azar pero respetando las probabilidades)
             resultado = random.choices(candidatos, weights=probabilidades, k=1)
             f_out.write(resultado[0] +'\n')
 
-
-# aca cada mesa se genera en su propio proceso, 
-# entonces se hacen todas al tiempo
+# Esta funcion genera los votos de todas las mesas de manera paralela, con un proceso por cada mesa, 
+# cada uno generando sus votos y guardandolos en su respectivo archivo.
 def generar_votos_paralelo(contexto, rutas_salida):
+    # dado el contedto
     candidatos = contexto[0]
     probabilidades = contexto[1]
     num_votantes = contexto[2]
@@ -29,37 +32,45 @@ def generar_votos_paralelo(contexto, rutas_salida):
     # repartimos los votantes entre las mesas
     votos_por_mesa = num_votantes // num_mesas
     procesos = []
+    # se genera un nuevo contexto para darle a cada proceso individualmente
+    # para que cada uno sepa cuantos votos tiene que generar
     nuevo_contexto = [candidatos, probabilidades, votos_por_mesa, num_mesas]
 
     # un proceso por cada archivo de mesa
     for ruta in rutas_salida:
         proceso = multiprocessing.Process(target=generar_votos_mesa,
                                              args=(nuevo_contexto, ruta))
-        procesos.append(proceso)
+        procesos.append(proceso) #guardamos el proceso en la lista.
 
-    # primero arrancamos todos y despues esperamos a que terminen
+    # esta lista es usada para inicializar y luego esperar a que todos los procesos terminen.
+    # arrancamos todos los procesos
     for proceso in procesos:
         proceso.start()
+    # hacemos que esperen a que todos los procesos terminen antes de continuar
     for proceso in procesos:
         proceso.join()
 
-
-# lo mismo que el anterior pero una mesa despues de la otra,
-# sirve para comparar los tiempos
+# funcion que tambien genera los votos para todas las mesas. pero esta se hace en un solo proceso,
+# generando los votos de cada mesa uno tras otro, para poder comparar tiempos con la version paralela.
 def generar_votos_secuencial(contexto, rutas_salida):
+    # dado el contexto
     candidatos = contexto[0]
     probabilidades = contexto[1]
     num_votantes = contexto[2]
     num_mesas = contexto[3]
+    # repartimos los votantes entre las mesas
     votos_por_mesa = num_votantes // num_mesas
     nuevo_contexto = [candidatos, probabilidades, votos_por_mesa, num_mesas]
 
+    # se generan los votos de cada mesa uno tras otro, en el mismo proceso
     for ruta in rutas_salida:
         generar_votos_mesa(nuevo_contexto, ruta)
 
-
+# Funcion comparativa, escecialmente existe para hacer una comparacion entre la 
+# version secuencial y la version paralela en la creacion de votos,
 # aca se decide si se generan los votos de las dos formas para comparar,
-# o solo en paralelo si los archivos no existen todavia
+# Suponiendo que no se desee comparar, si faltan arcihvos sencillamente se genera la version
+#  paralela, para una mayor eficiencia. si ya se tienen los datos, no hace nada.
 def generar_votos(contexto, rutas_votos_sec, rutas_votos_par):
     respuesta = input("Quieres realizar la comparación? (S/n): ")
     if (respuesta == "S" or respuesta == "s"):
@@ -94,11 +105,13 @@ def generar_votos(contexto, rutas_votos_sec, rutas_votos_par):
         print("Los votos ya se encuentran disponibles!\n")
 
 
-# cuenta los votos leyendo las mesas una por una
+# Funcion que cuenta los votos de manera secuencial, una mesa tras otra, y va sumando los resultados
 def contar_votos_secuencial(rutas_entrada):
+    # aca se guardan los resultados de cada mesa y el total final
     resultados_mesas = []
     resultados_finales = Counter()
 
+    # se recorren y leen los archivos de cada mesa, contando los votos y sumandolos al total
     for ruta in rutas_entrada:
         with open(ruta, 'r') as f_in:
             # el Counter cuenta cuantas veces aparece cada candidato en la mesa
@@ -110,18 +123,23 @@ def contar_votos_secuencial(rutas_entrada):
             for candidato, votos in resultado_mesa.items():
                 resultados_finales[candidato] += votos
 
+    # se imprimen los resultados de cada mesa y el total final
     imprimir_resultados(resultados_mesas, resultados_finales)
     return resultados_finales
 
 
+
+
+# CONTEO CONCURRENTE/PARALELOS DE LOS VOTOS
+
+# Implementacion de Map-reduce
 # parte del map: cada proceso cuenta los votos de una mesa
 def map_function(ruta_entrada):
-    with open(ruta_entrada, 'r') as f_in:
-        return Counter(linea.strip() for linea in f_in)
-
-
+    with open(ruta_entrada, 'r') as f_in: 
+        return Counter(linea.strip() for linea in f_in) 
 # parte del reduce: junta los conteos de todas las mesas en uno solo
 def reduce_function(mapped_results):
+    # se suman los resultados de cada mesa en un solo contador
     total_count = Counter()
     for count in mapped_results:
         for candidato, votos in count.items():
@@ -129,7 +147,10 @@ def reduce_function(mapped_results):
     return total_count
 
 
-# conteo en paralelo usando la idea de map reduce
+# Funcion de conteo en paralelo de los votos.
+# Esta hace uso del map y reparte las mesas entre los procesos, uno por mesa.
+# Posteriormente, con los resultados del map listos, hace uso del reduce para juntar los resultados 
+# de cada mesa en un solo resultado final.
 def contar_votos_paralelo(rutas_entrada):
     # el pool reparte las mesas entre los procesos, uno por mesa
     with multiprocessing.Pool(processes=len(rutas_entrada)) as pool:
@@ -142,7 +163,15 @@ def contar_votos_paralelo(rutas_entrada):
 
 
 # ==================== PRODUCTOR / CONSUMIDOR ====================
+# Este es el apartado concurrente de la solucion, donde cada mesa es un productor que va contando
+#  los votos de su urna y mandando los resultados a la cola, mientras que el consumidor es la registraduria 
+# que va recibiendo los resultados de cada mesa y va sumando los resultados, ademas de ir sacando boletines 
+# en vivo.
+# De esta manera no solo podemos modelar un comportamiento concurrente, sino que se hace una simulacion
+# mas realista de como se contarian los votos en la realidad.
 
+# Funcion que representa a una mesa de votacion (el PRODUCTOR), que va contando los votos de su urna 
+# y mandando los resultados a la cola.
 def productor_mesa(id_mesa, ruta_entrada, cola, tam_lote):
     """
     Este es el productor, osea una mesa de votacion.
@@ -163,22 +192,12 @@ def productor_mesa(id_mesa, ruta_entrada, cola, tam_lote):
     # el centinela, para que el consumidor sepa que esta mesa ya acabo
     cola.put((id_mesa, None))
 
-
-# imprime como va el conteo en ese momento, los boletines de la registraduria
-def imprimir_boletin(num_boletin, acumulado, votos_contados, votos_esperados,
-                     mesas_cerradas, num_mesas):
-    pct_votos = 100 * votos_contados / votos_esperados
-    # porcentaje de cada candidato sobre los votos que van contados
-    porcentajes = "  ".join(f"{c} {100 * v / votos_contados:5.2f}%"
-                            for c, v in sorted(acumulado.items()))
-    print(f"Boletín #{num_boletin:<3}| "
-          f"Escrutado: {pct_votos:5.1f}% ({votos_contados:,} votos) | "
-          f"Mesas cerradas: {mesas_cerradas}/{num_mesas} | {porcentajes}")
-
-
+## Funcion que representa a la registraduria (el CONSUMIDOR), que va recibiendo los resultados
+#  de cada mesa y va sumando los resultados, ademas de ir sacando boletines en vivo.
 def contar_votos_productor_consumidor(rutas_entrada, votos_esperados,
                                       tam_lote, tam_buffer,
                                       frecuencia_boletin=0.10):
+    # se define numero de mesas, para poder llevar un control de cuantas mesas han cerrado
     num_mesas = len(rutas_entrada)
 
     # la cola que comparten todos, con tamaño maximo para que no se llene la memoria
@@ -197,7 +216,7 @@ def contar_votos_productor_consumidor(rutas_entrada, votos_esperados,
     votos_contados = 0
     mesas_cerradas = 0
     num_boletin = 0
-    # cada cuantos votos se saca un boletin (por defecto cada 10%)
+    # se define cada cuantos votos se saca un boletin (por defecto cada 10%)
     paso_boletin = max(1, int(votos_esperados * frecuencia_boletin))
     siguiente_boletin = paso_boletin
 
@@ -234,15 +253,32 @@ def contar_votos_productor_consumidor(rutas_entrada, votos_esperados,
     for p in productores:
         p.join()
 
+    # Una vez se vacia la cola, se imprime el boletin final y los resultados finales de la votacion
     print("\nBOLETÍN FINAL:")
     imprimir_boletin(num_boletin + 1, acumulado, votos_contados,
                      votos_esperados, mesas_cerradas, num_mesas)
-
     imprimir_resultados(resultados_mesas, acumulado)
     return acumulado
 
 
-# imprime la tabla con los votos de cada mesa y el total
+
+# ============== FUNCIONES DE IMPRESION DE RESULTADOS  ============== 
+
+# imprime como va el conteo en ese momento, los boletines de la registraduria
+def imprimir_boletin(num_boletin, acumulado, votos_contados, votos_esperados,
+                     mesas_cerradas, num_mesas):
+    # porcentaje de votos contados sobre los esperados
+    pct_votos = 100 * votos_contados / votos_esperados
+    # porcentaje de cada candidato sobre los votos que van contados
+    porcentajes = "  ".join(f"{c} {100 * v / votos_contados:5.2f}%"
+                            for c, v in sorted(acumulado.items()))
+    # imprime el boletin con el numero de boletin, porcentaje de votos contados, mesas cerradas
+    #  y los porcentajes de cada candidato
+    print(f"Boletín #{num_boletin:<3}| "
+          f"Escrutado: {pct_votos:5.1f}% ({votos_contados:,} votos) | "
+          f"Mesas cerradas: {mesas_cerradas}/{num_mesas} | {porcentajes}")
+
+# imprime la tabla con los votos de cada mesa y el total al finalizar el conteo
 def imprimir_resultados(resultados_mesas, resultados_finales):
     # los candidatos ordenados para que siempre salgan en el mismo orden
     candidatos = sorted(resultados_finales.keys())
@@ -255,6 +291,7 @@ def imprimir_resultados(resultados_mesas, resultados_finales):
         print(f"{candidato:<10}", end="")
     print()
 
+    # Separador generico
     print("-" * (10 + 10 * len(candidatos)))
 
     # una fila por mesa
@@ -280,20 +317,26 @@ def imprimir_resultados(resultados_mesas, resultados_finales):
     presidente = max(resultados_finales, key=resultados_finales.get)
     print(f"\n\nEL NUEVO PRESIDENTE DE LA REPUBLICA DE COLOMBIA ES {presidente} !!!\n")
 
+# Funcion principal main del programa:
 if __name__ == '__main__':
     # configuracion de la simulacion
+    # definimos los candidatos, sus probabilidades de ganar, el numero de votantes y el numero de mesas
     CANDIDATOS = ['ADLE', 'IC', 'PV']
     PROBABILIDADES = [0.40, 0.40, 0.20]
     NUM_VOTANTES = 10000000
     MESAS_VOTACION = 8
     TAM_LOTE = 100_000      # cuantos votos cuenta una mesa antes de reportar
     TAM_BUFFER = 16         # cuantos reportes caben en la cola como maximo
+    # empaquetamos en contexto para pasarlo a funciones.
     contexto = [CANDIDATOS, PROBABILIDADES, NUM_VOTANTES, MESAS_VOTACION]
+    # definimos las rutas de los archivos de salida para cada mesa para las dos versioens.
     rutas_votos_sec = [f"taller_3/mesas/mesa_{i}_sec.txt" for i in range(MESAS_VOTACION)]
     rutas_votos_par = [f"taller_3/mesas/mesa_{i}_par.txt" for i in range(MESAS_VOTACION)]
     # puede que no sea exactamente NUM_VOTANTES por la division entera entre mesas
     votos_esperados = (NUM_VOTANTES // MESAS_VOTACION) * MESAS_VOTACION
 
+    # aca se decide si se generan los votos de manera secuencial y paralela para comparar tiempos,
+    # o si ya se tienen los archivos de votos, no se hace nada.
     generar_votos(contexto, rutas_votos_sec, rutas_votos_par)
 
     # 1. conteo normal, una mesa tras otra
@@ -305,7 +348,7 @@ if __name__ == '__main__':
     print(f"el tiempo de ejecucíon secuencial fue de {tiempo_sec:.2f}\n")
 
 
-    # 2. conteo con map reduce
+    # 2. conteo con map reduce de manera concurrente.
     print(f"CONTANDO VOTOS PARALELAMENTE...\n")
     inicio = time.time()
     total_par = contar_votos_paralelo(rutas_votos_par)
@@ -313,6 +356,7 @@ if __name__ == '__main__':
     tiempo_par = final - inicio
     print(f"el tiempo de ejecucíon paralelo fue de {tiempo_par:.2f}\n")
 
+    # calculamos aceleracion del programa paralelo con respecto al secuencial
     aceleracion = tiempo_sec/tiempo_par
     print(f"La aceleración del programa fue de {aceleracion:.2f}x\n")
 
