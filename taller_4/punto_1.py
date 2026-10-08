@@ -3,9 +3,9 @@ import random # para generar numeros aleatorios en la matriz
 import time # mediciones y comparacion.
 
 
-# Funcion que genera la matriz de tamaño dim x dim con numeros aleatorios entre 1 y 100.
+# Funcion que genera la matriz de tamaño dim x dim con numeros aleatorios entre 1 y 99.
 def generar_matriz(dim):
-    m = [[random.randint(1,100) # generada con numeros aleatorios entre 1 y 100
+    m = [[random.randint(1,100) # generada con numeros aleatorios entre 1 y 99
           for _ in range(dim)] 
           for _ in range(dim)]
     return m

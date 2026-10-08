@@ -1,11 +1,12 @@
 import numpy as np
+import time
 import random  # para generar numeros aleatorios en la matriz
 # Desarrollo del punto 2.
 
 """
 def generar_matriz(dim):
     m = [
-        [random.randint(1,100) # generada con numeros aleatorios entre 1 y 100
+        [random.randint(1,100) # generada con numeros aleatorios entre 1 y 99
         for _ in range(dim)] 
           for _ in range(dim)]
     return m
@@ -24,56 +25,45 @@ def imprimir_matriz(m):
         print(f"  [{linea}]")
     print("]")
 
-# Funcion que multiplica dos matrices de NUMPY
 def multiplicacion_numpy(m1, m2):
     return np.matmul(m1, m2)  # Utiliza la función de multiplicación de matrices de NumPy
 
-#apuntes de recorderis: la multiplicacion de matrices se hace fila*columna y se suman
-# Es decir, para la matriz de resultado de tamaño m x m, en su posicion m[i][j], se sacara con:
-# fila [i] de m1 POR la columna [j] de m2.
-def multiplicacion_tradicional(m1, m2):
-    m1_aux = m1.tolist()
-    m2_aux = m2.tolist()
-    mp = [[]]
-    cont = 0
-    for i in range(len(m1_aux)):
-        for j in range(len(m2_aux)):
-            cont = 0
-            while cont < 3:
-                print("posicion: ")
-                print(i,j,cont)
-                cont += 1
-          #      mp[i][j] += m1_aux[i][cont] * m1_aux[cont][j]
-    return
+def multiplicacion_clasica(m1,m2):
+    filas_m1 = len(m1)
+    columnas_m1 = len(m1[0])
+    columnas_m2 = len(m2[0])
 
-#matriz[][] 
+    # Inicializamos la matriz resultado con ceros
+    resultado = [[0 for _ in range(columnas_m2)] for _ in range(filas_m1)]
 
+    # Realizamos la multiplicación de matrices
+    for i in range(filas_m1):
+        for j in range(columnas_m2):
+            for k in range(columnas_m1):
+                resultado[i][j] += m1[i][k] * m2[k][j]
 
-
+    return resultado
 
 if __name__ == '__main__':
-    ## Creemos las dos matrices con numeros alatorios de 1000*1000
-    # (por pruebitas tripi tripi seran de 3*3)
-    TAM = 3
-    CHUNK = 1
+    TAM = 1000
 
-    #matrices generadas con numpy para facilidad de trabajo
-    m1np = np.random.randint(1, 10, size=(TAM, TAM))
-    m2np = np.random.randint(1, 10, size=(TAM, TAM))
+    m1np = np.random.randint(1, 101, size=(TAM, TAM))
+    m2np = np.random.randint(1, 101, size=(TAM, TAM))
 
-    #imprimimos matrices de numpy
-    print("matriz 1:")
-    imprimir_matriz(m1np)
-    print("matriz 2:")
-    imprimir_matriz(m2np)
-
-    #probando multiplicacion con numpy
+    print("Iniciando multiplicación con NumPy (SIMD)...")
+    inicio = time.perf_counter()
     resultado_numpy = multiplicacion_numpy(m1np, m2np)
-    print("resultado multiplicacion con numpy:")
-    imprimir_matriz(resultado_numpy)
-    #vale, de momento la multiplicacion se hace bien
+    dif_numpy = time.perf_counter() - inicio
+    print(f"Tiempo NumPy: {dif_numpy:.6f} s")
 
-    #multiplicacion tradicional
-    resultado_tradicional = multiplicacion_tradicional(m1np, m2np)
+    m1, m2 = m1np.tolist(), m2np.tolist()
+    print("Iniciando multiplicación secuencial...")
+    inicio = time.perf_counter()
+    resultado_secuencial = multiplicacion_clasica(m1, m2)
+    dif_secuencial = time.perf_counter() - inicio
+    print(f"Tiempo secuencial: {dif_secuencial:.6f} s")
 
+    assert np.array_equal(resultado_numpy, resultado_secuencial)
+    print(f"Aceleración: {dif_secuencial / dif_numpy:.2f}x")
 
+    
