@@ -1,11 +1,12 @@
 import numpy as np
+import time
 import random  # para generar numeros aleatorios en la matriz
 # Desarrollo del punto 2.
 
 """
 def generar_matriz(dim):
     m = [
-        [random.randint(1,100) # generada con numeros aleatorios entre 1 y 100
+        [random.randint(1,100) # generada con numeros aleatorios entre 1 y 99
         for _ in range(dim)] 
           for _ in range(dim)]
     return m
@@ -44,31 +45,25 @@ def multiplicacion_clasica(m1,m2):
     return resultado
 
 if __name__ == '__main__':
-    ## Creemos las dos matrices con numeros alatorios de 1000*1000
-    # (por pruebitas tripi tripi seran de 3*3)
-    TAM = 3
-    CHUNK = 1
+    TAM = 1000
 
-    #matrices generadas con numpy
-    m1np = np.random.randint(1, 100, size=(TAM, TAM))
-    m2np = np.random.randint(1, 100, size=(TAM, TAM))
+    m1np = np.random.randint(1, 101, size=(TAM, TAM))
+    m2np = np.random.randint(1, 101, size=(TAM, TAM))
 
-    #imprimimos matrices de numpy
-    print("matriz 1:")
-    imprimir_matriz(m1np)
-    print("matriz 2:")
-    imprimir_matriz(m2np)
-
-    #probando multiplicacion con numpy
+    print("Iniciando multiplicación con NumPy (SIMD)...")
+    inicio = time.perf_counter()
     resultado_numpy = multiplicacion_numpy(m1np, m2np)
-    print("resultado multiplicacion con numpy:")
-    imprimir_matriz(resultado_numpy)
+    dif_numpy = time.perf_counter() - inicio
+    print(f"Tiempo NumPy: {dif_numpy:.6f} s")
+
+    m1, m2 = m1np.tolist(), m2np.tolist()
+    print("Iniciando multiplicación secuencial...")
+    inicio = time.perf_counter()
+    resultado_secuencial = multiplicacion_clasica(m1, m2)
+    dif_secuencial = time.perf_counter() - inicio
+    print(f"Tiempo secuencial: {dif_secuencial:.6f} s")
+
+    assert np.array_equal(resultado_numpy, resultado_secuencial)
+    print(f"Aceleración: {dif_secuencial / dif_numpy:.2f}x")
+
     
-    """
-    #"resultado normal con listas"
-    m1 = m1np.tolist()
-    m2 = m2np.tolist()
-    multiplicacion_clasica_resultado = multiplicacion_clasica(m1, m2)
-    print("resultado multiplicacion clasica:")
-    imprimir_matriz(multiplicacion_clasica_resultado)
-    """
