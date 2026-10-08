@@ -24,24 +24,32 @@ def imprimir_matriz(m):
         print(f"  [{linea}]")
     print("]")
 
+# Funcion que multiplica dos matrices de NUMPY
 def multiplicacion_numpy(m1, m2):
     return np.matmul(m1, m2)  # Utiliza la función de multiplicación de matrices de NumPy
 
-def multiplicacion_clasica(m1,m2):
-    filas_m1 = len(m1)
-    columnas_m1 = len(m1[0])
-    columnas_m2 = len(m2[0])
+#apuntes de recorderis: la multiplicacion de matrices se hace fila*columna y se suman
+# Es decir, para la matriz de resultado de tamaño m x m, en su posicion m[i][j], se sacara con:
+# fila [i] de m1 POR la columna [j] de m2.
+def multiplicacion_tradicional(m1, m2):
+    m1_aux = m1.tolist()
+    m2_aux = m2.tolist()
+    mp = [[]]
+    cont = 0
+    for i in range(len(m1_aux)):
+        for j in range(len(m2_aux)):
+            cont = 0
+            while cont < 3:
+                print("posicion: ")
+                print(i,j,cont)
+                cont += 1
+          #      mp[i][j] += m1_aux[i][cont] * m1_aux[cont][j]
+    return
 
-    # Inicializamos la matriz resultado con ceros
-    resultado = [[0 for _ in range(columnas_m2)] for _ in range(filas_m1)]
+#matriz[][] 
 
-    # Realizamos la multiplicación de matrices
-    for i in range(filas_m1):
-        for j in range(columnas_m2):
-            for k in range(columnas_m1):
-                resultado[i][j] += m1[i][k] * m2[k][j]
 
-    return resultado
+
 
 if __name__ == '__main__':
     ## Creemos las dos matrices con numeros alatorios de 1000*1000
@@ -49,9 +57,9 @@ if __name__ == '__main__':
     TAM = 3
     CHUNK = 1
 
-    #matrices generadas con numpy
-    m1np = np.random.randint(1, 100, size=(TAM, TAM))
-    m2np = np.random.randint(1, 100, size=(TAM, TAM))
+    #matrices generadas con numpy para facilidad de trabajo
+    m1np = np.random.randint(1, 10, size=(TAM, TAM))
+    m2np = np.random.randint(1, 10, size=(TAM, TAM))
 
     #imprimimos matrices de numpy
     print("matriz 1:")
@@ -63,12 +71,9 @@ if __name__ == '__main__':
     resultado_numpy = multiplicacion_numpy(m1np, m2np)
     print("resultado multiplicacion con numpy:")
     imprimir_matriz(resultado_numpy)
-    
-    """
-    #"resultado normal con listas"
-    m1 = m1np.tolist()
-    m2 = m2np.tolist()
-    multiplicacion_clasica_resultado = multiplicacion_clasica(m1, m2)
-    print("resultado multiplicacion clasica:")
-    imprimir_matriz(multiplicacion_clasica_resultado)
-    """
+    #vale, de momento la multiplicacion se hace bien
+
+    #multiplicacion tradicional
+    resultado_tradicional = multiplicacion_tradicional(m1np, m2np)
+
+
