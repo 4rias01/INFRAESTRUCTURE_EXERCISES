@@ -1,20 +1,22 @@
-from threading import Thread
-import random
-import time
+from threading import Thread #importamos libreria de threading para hacer uso de los hilos.
+import random # para generar numeros aleatorios en la matriz
+import time # mediciones y comparacion.
 
 
+# Funcion que genera la matriz de tamaño dim x dim con numeros aleatorios entre 1 y 100.
 def generar_matriz(dim):
-    m = [[random.randint(1,100) 
+    m = [[random.randint(1,100) # generada con numeros aleatorios entre 1 y 100
           for _ in range(dim)] 
           for _ in range(dim)]
     return m
 
-
+# Funcion que imprime la matriz de manera legible
 def imprimir_matriz(m):
-    if not m:
+    if not m: #si la matriz esta vacia, imprime []
         print("[]")
         return
 
+    # Calcula el ancho del valor ms grande en la matriz para formatear la salida
     ancho = max(len(str(valor)) for fila in m for valor in fila)
 
     print("[")
@@ -24,11 +26,13 @@ def imprimir_matriz(m):
     print("]")
 
 
+# funcion de sima de matriz secuencial, recibe la matriz y los indices de inicio y fin de filas y columnas a sumar.
+# este sencillamente recorre toda la matriz posicion a posicion y va sumand los elementos de manera acumulativa.
 def sumar_matriz_secuencial(m, fil_inicio, fil_final, col_inicio, col_final):
-    total = 0
-    for i in range (fil_inicio, fil_final):
-        for j in range (col_inicio, col_final):
-            total += m[i][j]
+    total = 0 # inicializamos variable acumuladora como un 0.
+    for i in range (fil_inicio, fil_final): #recorremos filas
+        for j in range (col_inicio, col_final): #recorremos columnas
+            total += m[i][j] # sumamos elemento de cada posicion a la variable acumuladora
     return total
 
 
@@ -75,4 +79,5 @@ if __name__ == '__main__':
 
     assert resultado_sec == resultado_smp   # verifica que ambas versiones coinciden
     print(f"Secuencial: {dif_sec:.4f} s | SMP: {dif_smp:.4f} s")
+    
     
