@@ -11,22 +11,6 @@ def generar_matriz(dim):
           for _ in range(dim)]
     return m
 
-# Funcion generica que imprime la matriz de manera legible
-# recibe como argumento una matriz m para conocer sus dimensiones
-def imprimir_matriz(m):
-    if not m: #si la matriz esta vacia, imprime []
-        print("[]")
-        return
-
-    # Calcula el ancho del valor ms grande en la matriz para formatear la salida
-    ancho = max(len(str(valor)) for fila in m for valor in fila)
-
-    print("[")
-    for fila in m:
-        linea = "  ".join(f"{valor:>{ancho}}" for valor in fila)
-        print(f"  [{linea}]")
-    print("]")
-
 
 # funcion de suma de matriz secuencial, recibe la matriz y los indices de inicio y fin de filas y columnas a sumar.
 # este sencillamente recorre toda la matriz posicion a posicion y va sumand los elementos de manera acumulativa.
