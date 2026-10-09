@@ -73,21 +73,29 @@ def sumar_matriz_smp(m, chunksize):
     return sum(resultados) # retornamos la suma de todos los resultados parciales
 
 
+# Ejecuta func REPETICIONES veces y devuelve (resultado, mediana de tiempos).
+def medir(func, *args):
+    tiempos = []
+    for _ in range(REPETICIONES):
+        inicio = time.perf_counter()
+        resultado = func(*args)
+        tiempos.append(time.perf_counter() - inicio)
+    tiempos.sort()
+    return resultado, tiempos[len(tiempos) // 2]
+
+
 # funcion principal main del archivo
 if __name__ == '__main__':
     #se define el tamaño de la matriz en 1000, y el tamaño de cada bloque/chunk en 100. (quedandonos en total 10 bloques.)
     TAM = 1000 
     CHUNK = 100
+    REPETICIONES = 5 # cada medicion se repite y se toma la mediana
     m1 = generar_matriz(TAM) # generamos la matriz
 
-    # invocamos la suma secuencial y tomamos los tiempos 
-    inicio = time.perf_counter()
-    resultado_sec = sumar_matriz_secuencial(m1, 0, TAM, 0, TAM)
-    dif_sec = time.perf_counter() - inicio
+    # invocamos la suma secuencial y tomamos los tiempos
+    resultado_sec, dif_sec = medir(sumar_matriz_secuencial, m1, 0, TAM, 0, TAM)
     # invoamos la suma paralela usando smp y tomamos los tiempos
-    inicio = time.perf_counter()
-    resultado_smp = sumar_matriz_smp(m1, CHUNK)
-    dif_smp = time.perf_counter() - inicio
+    resultado_smp, dif_smp = medir(sumar_matriz_smp, m1, CHUNK)
 
     # Realizamos una verificacion para ver que ambas sumas coinciden en resultados
     assert resultado_sec == resultado_smp   
