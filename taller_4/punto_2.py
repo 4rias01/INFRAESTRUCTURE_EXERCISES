@@ -13,7 +13,7 @@ def multiplicacion_numpy(m1, m2):
 def multiplicacion_clasica(m1,m2):
     filas_m1 = len(m1) # numero de filas de la matriz 1
     columnas_m1 = len(m1[0]) # numero de columnas de matriz 1
-    columnas_m2 = len(m2[0]) # numero de columnas de matriz 1
+    columnas_m2 = len(m2[0]) # numero de columnas de matriz 2
 
     # Inicializamos la matriz resultado con ceros
     resultado = [[0 for _ in range(columnas_m2)] for _ in range(filas_m1)]

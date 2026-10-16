@@ -58,7 +58,7 @@ def suma_bloque_simd(m, limites):
     # El slicing de NumPy crea una "vista": no copia los datos del bloque.
     fi, ff, ci, cf = limites
     sumas_filas = np.sum(m[fi:ff, ci:cf], axis=1)
-    return int(sumas_filas.sum())
+    return sumas_filas.sum()
 
 
 # Formas de recorrer LOS bloques
